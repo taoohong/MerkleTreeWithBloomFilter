@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include "md5.h"
+#include "bloomfilter.h"
 
 using namespace std;
 
@@ -19,9 +20,9 @@ typedef struct node
     struct node* left;
     struct node* right;
     struct node* parent;
+    Bloom* bloom;
     bool isLeft;
     bool isRight;
-
     node():isLeft(false), isRight(false){}
 }Node;
 
@@ -32,6 +33,7 @@ private:
     /* data */
     Node* root;
     vector<Node*> leafs;
+    bool usingBF = false;
     unsigned int levels = 0;
     size_t totalSize = 0;
 
@@ -45,7 +47,7 @@ private:
 
     Node* generateMerkleTree(vector<Node*> leafs);
 public:
-    MerkleTree(vector<Data> datas);
+    MerkleTree(vector<Data> datas, bool usingBF);
 
     //setter
     void setRoot(Node* r){root = r;}
@@ -61,9 +63,18 @@ public:
 
     /**
      * get merkle proof path
-     * @param data
+     * @param data the known data asking for verification
+     * @return vector of necessary proof nodes
      **/ 
     vector<string> getProof(Data* data);
+
+    /**
+     * verify with bloom filter
+     * @param data the known data asking for verification
+     * @return if merkle tree contains this data
+     **/
+    bool verifyByBloomFilter(Node* node, Data* data);
+
     ~MerkleTree();
 };
 

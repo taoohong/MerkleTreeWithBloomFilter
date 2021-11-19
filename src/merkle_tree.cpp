@@ -1,9 +1,10 @@
 #include "../include/merkle_tree.h"
 
-MerkleTree::MerkleTree(vector<Data> datas)
+MerkleTree::MerkleTree(vector<Data> datas, bool usingBF)
 {
-    leafs = generateLeafsList(datas);
-    root = generateMerkleTree(this->getLeafs());
+    this->usingBF = usingBF;
+    this->leafs = generateLeafsList(datas);
+    this->root = generateMerkleTree(this->getLeafs());
     cout << "merkle tree with " << totalSize << " nodes has been built..."  << endl;
 }
 
@@ -58,6 +59,7 @@ Node* MerkleTree::createNode(Node* origin_node)
     node->left = origin_node->left;
     node->right = origin_node->right;
     node->hash = origin_node->hash;
+    node->bloom = origin_node->bloom;
     return node;
 }
 
@@ -68,6 +70,12 @@ vector<Node*> MerkleTree::generateLeafsList(vector<Data> datas)
     for(int i = 0; i<n; i++)
     {
         (*leafs)[i] = createNode(datas[i], NULL, NULL);
+        if(usingBF)
+        {
+            (*leafs)[i]->bloom = (Bloom*)malloc(sizeof(Bloom));
+            bloom_init((*leafs)[i]->bloom, bloom_entry, bloom_error);
+            bloom_add((*leafs)[i]->bloom, datas[i].data.c_str(), datas[i].size);
+        }
     }
     cout << "list of leafs has been created..." << endl;
     return *leafs;
@@ -94,6 +102,11 @@ Node* MerkleTree::generateMerkleTree(vector<Node*> leafs)
         tmp_leafs[count]->parent = nullptr;
         leafs[i]->parent = tmp_leafs[count];
         leafs[i+1]->parent = tmp_leafs[count];
+        if(usingBF)
+        {
+            tmp_leafs[count]->bloom = (Bloom*)malloc(sizeof(Bloom));
+            bloom_and(leafs[i+1]->bloom, leafs[i]->bloom, tmp_leafs[count]->bloom);
+        }
         count ++;
     }
     this->totalSize+=n;
@@ -125,3 +138,21 @@ vector<string> MerkleTree::getProof(Data* data)
     }
     return vector<string>();
 }
+
+bool MerkleTree::verifyByBloomFilter(Node* node, Data* data)
+{
+    if(NULL == data) return false;
+    if(bloom_check(node->bloom, data->data.c_str(), data->size))
+    {
+        Node* left = node->left;
+        Node* right = node->right;
+        if(NULL == left && NULL == right)
+        {
+            return true;
+        }
+        else if(verifyByBloomFilter(left, data)) return true;
+        else return verifyByBloomFilter(right, data);
+    }
+    return false;
+}
+

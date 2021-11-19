@@ -1,0 +1,5 @@
+make.exe --dry-run --keep-going --print-directory
+make.exe: Entering directory 'c:/Users/hongtao/Desktop/������/Merkle Tree'
+make.exe: 'test' is up to date.
+make.exe: Leaving directory 'c:/Users/hongtao/Desktop/������/Merkle Tree'
+ 
