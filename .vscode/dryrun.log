@@ -1,5 +1,5 @@
-make.exe --dry-run --keep-going --print-directory
+make.exe --dry-run --always-make --keep-going --print-directory
 make.exe: Entering directory 'c:/Users/hongtao/Desktop/������/Merkle Tree'
-make.exe: 'test' is up to date.
+g++ ./test/test.cpp ./src/md5.cpp ./src/bloomfilter.cpp ./src/murmurhash2.cpp ./src/merkle_tree.cpp -o test
 make.exe: Leaving directory 'c:/Users/hongtao/Desktop/������/Merkle Tree'
  

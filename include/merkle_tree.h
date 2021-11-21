@@ -37,17 +37,17 @@ private:
     unsigned int levels = 0;
     size_t totalSize = 0;
 
-    Node* createNode(Data data, Node* left, Node*right);
+    Node* createNode(Data* data, Node* left, Node*right);
 
     Node* createNode(string s, Node* left, Node*right);
 
     Node* createNode(Node* origin_node);
 
-    vector<Node*> generateLeafsList(vector<Data> datas);
+    vector<Node*> generateLeafsList(vector<Data*> datas);
 
     Node* generateMerkleTree(vector<Node*> leafs);
 public:
-    MerkleTree(vector<Data> datas, bool usingBF);
+    MerkleTree(vector<Data*> datas, bool usingBF);
 
     //setter
     void setRoot(Node* r){root = r;}

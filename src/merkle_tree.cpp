@@ -1,34 +1,35 @@
 #include "../include/merkle_tree.h"
 
-MerkleTree::MerkleTree(vector<Data> datas, bool usingBF)
+MerkleTree::MerkleTree(vector<Data*> datas, bool usingBF)
 {
     this->usingBF = usingBF;
     this->leafs = generateLeafsList(datas);
     this->root = generateMerkleTree(this->getLeafs());
-    cout << "merkle tree with " << totalSize << " nodes has been built..."  << endl;
+    cout << "[SUCCESS]: merkle tree with " << totalSize << " nodes has been built..."  << endl;
 }
 
 MerkleTree::~MerkleTree()
 {
-    for(auto& node : leafs)
+    for(Node* node : leafs)
     {
+        //if(node->bloom) delete node->bloom;
         delete node;
     }
-    cout << "merkle tree has been cleaned..." << endl;
+    cout << "[SUCCESS]: merkle tree has been cleaned..." << endl;
 };
 
 
-Node* MerkleTree::createNode(Data data, Node* left, Node*right)
+Node* MerkleTree::createNode(Data* data, Node* left, Node*right)
 {
     Node* node = new Node();
     if (node == nullptr)
 	{
-		cout << "out of memory" << endl;
+		cout << "[ERROR]: out of memory" << endl;
 		exit(1);
 	}
     node->left = left;
     node->right = right;
-    node->hash = toolkit::MD5(data.data).hexdigest();
+    node->hash = toolkit::MD5(data->data).hexdigest();
     //node->hash = data.data;
     return node;
 }
@@ -38,7 +39,7 @@ Node* MerkleTree::createNode(string data, Node* left, Node*right)
     Node* node = new Node();
     if (node == nullptr)
 	{
-		cout << "out of memory" << endl;
+		cout << "[ERROR]: out of memory" << endl;
 		exit(1);
 	}
     node->left = left;
@@ -53,7 +54,7 @@ Node* MerkleTree::createNode(Node* origin_node)
     Node* node = new Node();
     if (node == nullptr)
 	{
-		cout << "out of memory" << endl;
+		cout << "[ERROR]: out of memory" << endl;
 		exit(1);
 	}
     node->left = origin_node->left;
@@ -63,7 +64,7 @@ Node* MerkleTree::createNode(Node* origin_node)
     return node;
 }
 
-vector<Node*> MerkleTree::generateLeafsList(vector<Data> datas)
+vector<Node*> MerkleTree::generateLeafsList(vector<Data*> datas)
 {
     int n = datas.size();
     vector<Node*>* leafs = new vector<Node*>(n);
@@ -74,10 +75,10 @@ vector<Node*> MerkleTree::generateLeafsList(vector<Data> datas)
         {
             (*leafs)[i]->bloom = (Bloom*)malloc(sizeof(Bloom));
             bloom_init((*leafs)[i]->bloom, bloom_entry, bloom_error);
-            bloom_add((*leafs)[i]->bloom, datas[i].data.c_str(), datas[i].size);
+            bloom_add((*leafs)[i]->bloom, datas[i]->data.c_str(), datas[i]->size);
         }
     }
-    cout << "list of leafs has been created..." << endl;
+    cout << "[SUCCESS]: list of leafs has been created..." << endl;
     return *leafs;
 }
 
@@ -119,7 +120,7 @@ vector<string> MerkleTree::getProof(Data* data)
     vector<string> proof;
     int n = leafs.size();
     string hash = toolkit::MD5(data->data).hexdigest();
-    for(auto& node : leafs)
+    for(auto node : leafs)
     {
         if(node->hash == hash)
         {
